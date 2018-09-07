@@ -2,8 +2,7 @@ $(document).ready(function(){
 	start_loading();
 	$.getJSON("data/flattenedSave.json", function (data) {
 		$.each(data.files, function (index, value) {
-			if(value.name == 'FONCTION_UCAD0_AVENANTS_DOSSIER_V4.0.xlsx') console.log(encodeURI(value.path));
-			var newRowContent = "<tr><td align='center'><a href=\"/file/"+encodeURI(value.path)+"\" target='_blank'>"+getIconHTML(value.extension)+"</a></td><td>"+removeDiacritics(value.name)+"</td><td>"+value.path+"</td></tr>";
+			var newRowContent = "<tr><td align='center'><a href=\"/file/"+value.path+"\" target='_blank'>"+getIconHTML(value.extension)+"</a></td><td>"+removeDiacritics(value.name)+"</td><td>"+value.path+"</td></tr>";
 			$('#doc_table tbody').append(newRowContent);
 			//console.log(value);
 		});

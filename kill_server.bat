@@ -1,5 +1,5 @@
 @echo off
-set PROJECT_PATH="E:\dev\tools\file scrap esope"
+set PROJECT_PATH="PROJECT_PATH_HERE"
 E:
 cd %PROJECT_PATH%
 set /p PID_TO_KILL=<RUNNING
