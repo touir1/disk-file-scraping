@@ -8,8 +8,19 @@ const filteredTree = dirTree(directory_path, {
   extensions: /\.(xlsx|docx|pdf)$/
 });
 
-fs.writeFile('data/save.json', JSON.stringify(filteredTree), 'utf8', function(error){
-	if(error) throw error;
+function log_throw_error(error){
+	console.log("Error:", error.stack);
+	console.log("Error:", error.name);
+	console.log("Error:", error.message);
+	throw error;
+}
+
+fs.writeFile('./data/save.json', JSON.stringify(filteredTree), 'utf8', function(error){
+	if(error) 
+	{
+		console.log('error while saving into save.json');
+		log_throw_error(error);
+	}
 	console.log('completed');
 });
 
@@ -33,9 +44,13 @@ function recursive_search(item){
 	if(item.type == 'file') flattenedFilteredFiles.files.push(item);
 }
 
-recursive_search(data);
+recursive_search(filteredTree);
 
-fs.writeFile('data/flattenedSave.json', JSON.stringify(flattenedFilteredFiles), 'utf8', function(error){
-	if(error) throw error;
+fs.writeFile('./data/flattenedSave.json', JSON.stringify(flattenedFilteredFiles), 'utf8', function(error){
+	if(error)
+	{
+		console.log('error while saving into flattenedSave.json');
+		log_throw_error(error);
+	}
 	console.log('completed');
 });

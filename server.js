@@ -58,11 +58,19 @@ fs.readFile('./index.html', function (err, html) {
 		}
 		else if(request.url.startsWith('/file/'))
 		{
-			var filePath = decodeURI(request.url.slice(6));
-			logMessage('request from '+sender_ip+' : looking for file '+filePath);
-			var content = fs.readFileSync(filePath);
-			response.writeHeader(200, {"Content-Type": getMimeType(filePath)});
-			response.write(content);
+			try
+			{
+				var filePath = decodeURI(request.url.slice(6));
+				logMessage('request from '+sender_ip+' : looking for file '+filePath);
+				var content = fs.readFileSync(filePath);
+				response.writeHeader(200, {"Content-Type": getMimeType(filePath)});
+				response.write(content);
+			}
+			catch(error)
+			{
+				console.log('file not found');
+				response.writeHeader(404,{});
+			}
 		}
 		else
 		{
