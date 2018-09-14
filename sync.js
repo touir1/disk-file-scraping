@@ -15,13 +15,42 @@ function log_throw_error(error){
 	throw error;
 }
 
+function getDateTime() {
+
+    var date = new Date();
+
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min  = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec  = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    var year = date.getFullYear();
+
+    var month = date.getMonth() + 1;
+    month = (month < 10 ? "0" : "") + month;
+
+    var day  = date.getDate();
+    day = (day < 10 ? "0" : "") + day;
+
+    return day + '-' + month + "-" + year + " " + hour + ":" + min + ":" + sec;
+
+}
+
+function logMessage(message){
+	console.log('['+getDateTime()+']: '+message);
+}
+
 fs.writeFile('./data/save.json', JSON.stringify(filteredTree), 'utf8', function(error){
 	if(error) 
 	{
-		console.log('error while saving into save.json');
+		logMessage('error while saving into save.json');
 		log_throw_error(error);
 	}
-	console.log('completed');
+	logMessage('sync and save into save.json completed');
 });
 
 var flattenedFilteredFiles = {'files' : []};
@@ -41,7 +70,7 @@ function recursive_search(item){
 			recursive_search(item.children[i]);
 		}
 	}
-	if(item.type == 'file') flattenedFilteredFiles.files.push(item);
+	if(item.type == 'file' && !item.name.startsWith('~$')) flattenedFilteredFiles.files.push(item);
 }
 
 recursive_search(filteredTree);
@@ -49,8 +78,8 @@ recursive_search(filteredTree);
 fs.writeFile('./data/flattenedSave.json', JSON.stringify(flattenedFilteredFiles), 'utf8', function(error){
 	if(error)
 	{
-		console.log('error while saving into flattenedSave.json');
+		logMessage('error while saving into flattenedSave.json');
 		log_throw_error(error);
 	}
-	console.log('completed');
+	logMessage('filtering and save into flattenedSave.json completed');
 });

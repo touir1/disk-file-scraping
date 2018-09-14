@@ -41,52 +41,56 @@ function getMimeType(filePath){
 	return 'application/octet-stream';
 }
 
+
 fs.readFile('./index.html', function (err, html) {
     if (err) {
         throw err; 
-    } 
+    }
 	
-    http.createServer(function(request, response) {
-		var sender_ip = request.connection.remoteAddress || 
-						request.socket.remoteAddress || 
-						(request.connection.socket ? request.connection.socket.remoteAddress : null);
-		logMessage('request from '+sender_ip+' : '+request.url);
-		if(request.url == '/') 
+    var app = http.createServer(function(request, response) {
+	var sender_ip = request.connection.remoteAddress || 
+					request.socket.remoteAddress || 
+					(request.connection.socket ? request.connection.socket.remoteAddress : null);
+	logMessage('request from '+sender_ip+' : '+request.url);
+	if(request.url == '/') 
+	{
+		response.writeHeader(200, {"Content-Type": "text/html"});
+		response.write(html);
+	}
+	else if(request.url.startsWith('/file/'))
+	{
+		try
 		{
-			response.writeHeader(200, {"Content-Type": "text/html"});
-			response.write(html);
+			var filePath = decodeURI(request.url.slice(6));
+			logMessage('request from '+sender_ip+' : looking for file '+filePath);
+			var content = fs.readFileSync(filePath);
+			response.writeHeader(200, {"Content-Type": getMimeType(filePath)});
+			response.write(content);
 		}
-		else if(request.url.startsWith('/file/'))
+		catch(error)
 		{
-			try
-			{
-				var filePath = decodeURI(request.url.slice(6));
-				logMessage('request from '+sender_ip+' : looking for file '+filePath);
-				var content = fs.readFileSync(filePath);
-				response.writeHeader(200, {"Content-Type": getMimeType(filePath)});
-				response.write(content);
-			}
-			catch(error)
-			{
-				console.log('file not found');
-				response.writeHeader(404,{});
-			}
+			console.log('file not found');
+			response.writeHeader(404,{});
 		}
-		else
+	}
+	else
+	{
+		try
 		{
-			try
-			{
-				response.writeHeader(200, {});
-				var content = fs.readFileSync("."+request.url);
-				response.write(content);
-			}
-			catch(error)
-			{
-				response.writeHeader(404,{});
-			}
+			response.writeHeader(200, {});
+			var content = fs.readFileSync("."+request.url);
+			response.write(content);
 		}
-        response.end();  
-    }).listen(PORT,HOST, function(error){
+		catch(error)
+		{
+			response.writeHeader(404,{});
+		}
+	}
+	response.end();  
+});
+	var io = require('socket.io')(app);
+	
+	app.listen(PORT,HOST, function(error){
 		if(error){
 			throw error;
 		}
@@ -103,4 +107,31 @@ fs.readFile('./index.html', function (err, html) {
 		});
 		
 	});
+	
+	fs.readFile('data/server_data.json', 'utf8', function (err,data){
+		var dataParsed = {};
+		
+		if(err) {
+			dataParsed.lastId = 1;
+			fs.writeFile('data/server_data.json', JSON.stringify(dataParsed), 'utf8', function(error){
+				if(error) throw error;
+				logMessage('a new server_data.json file was created');
+			});
+		}
+		
+		dataParsed = data;
+		dataParsed.lastId = dataParsed.lastId + 1;
+		fs.writeFile('data/server_data.json', JSON.stringify(dataParsed), 'utf8', function(error){
+			if(error) throw error;
+			console.log('the server_data.json file was updated');
+		});
+		
+		io.on('connection', function (socket) {
+			socket.on('ping_changes', function (data) {
+				socket.emit('ping_changes_response', dataParsed);
+			});
+		});
+	});
+	
+	
 });

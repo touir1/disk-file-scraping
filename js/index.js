@@ -24,7 +24,25 @@ $(document).ready(function(){
 
 		stop_loading();
 	});
+	var socket = io('http://localhost:3132');
 	
+	var last_update = 0;
+	
+	setInterval(function(){ 
+		socket.emit('ping_changes',{});
+	}, 5000);
+	
+	socket.on('ping_changes_response', function (data) {
+		console.log(data);
+		if(last_update == 0){
+			last_update = data.lastId;
+		}
+		else{
+			if(last_update != data.lastId){
+				window.location.reload();
+			}
+		}
+	});
 });
 
 function getIconHTML(extension){
