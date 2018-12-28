@@ -1,18 +1,60 @@
 $(document).ready(function(){
 	start_loading();
 	$.getJSON("data/flattenedSave.json", function (data) {
-		$.each(data.files, function (index, value) {
-			var newRowContent = "<tr><td align='center'><a href=\"/file/"+value.path+"\" target='_blank'>"+getIconHTML(value.extension)+"</a></td><td>"+removeDiacritics(value.name)+"</td><td>"+value.path+"</td></tr>";
-			$('#doc_table tbody').append(newRowContent);
-			//console.log(value);
-		});
+		
 		var datatable = $('#doc_table').DataTable({
+			'data': data.files,
+			'deferRender': true,
 			'columns': [
-				{'searchable': false},
-				null,
-				{'searchable': false}
-			]
+				{
+					'data': null,
+					'title': 'T&eacute;l&eacute;charger le fichier',
+					'searchable': false, 
+					'render': function ( data, type, row, meta ) {
+						return "<center><a href=\"/file/"+data.path+"\" target='_blank'>"+getIconHTML(data.extension)+"</a></center>"
+					}
+				},
+				{
+					'data': null,
+					'title': 'Nom du fichier',
+					'render': function( data, type, row, meta) {
+						return removeDiacritics(data.name);
+					}
+				},
+				{
+					'data': null,
+					'title': 'Chemin du fichier',
+					'searchable': false,
+					'render': function( data, type, row, meta) {
+						return data.path;
+					}
+				}
+			],
+			'language': {
+				"processing":     "Traitement en cours...",
+				"search":         "Rechercher&nbsp;:",
+				"lengthMenu":     "Afficher _MENU_ &eacute;l&eacute;ments",
+				"info":           "Affichage de l'&eacute;lement _START_ &agrave; _END_ sur _TOTAL_ &eacute;l&eacute;ments",
+				"infoEmpty":      "Affichage de l'&eacute;lement 0 &agrave; 0 sur 0 &eacute;l&eacute;ments",
+				"infoFiltered":   "(filtr&eacute; de _MAX_ &eacute;l&eacute;ments au total)",
+				"infoPostFix":    "",
+				"loadingRecords": "Chargement en cours...",
+				"zeroRecords":    "Aucun &eacute;l&eacute;ment &agrave; afficher",
+				"emptyTable":     "Aucune donn&eacute;e disponible dans le tableau",
+				"paginate": {
+					"first":      "Premier",
+					"previous":   "Pr&eacute;c&eacute;dent",
+					"next":       "Suivant",
+					"last":       "Dernier"
+				},
+				"aria": {
+					"sortAscending":  ": activer pour trier la colonne par ordre croissant",
+					"sortDescending": ": activer pour trier la colonne par ordre d&eacute;croissant"
+				}
+			}
 		});
+		
+		console.log(datatable);
 
 		$('.dataTables_filter input').unbind().bind("input", function (e) {
 
@@ -24,6 +66,7 @@ $(document).ready(function(){
 
 		stop_loading();
 	});
+	
 	var socket = io('http://localhost:3132');
 	
 	var last_update = 0;
@@ -33,8 +76,8 @@ $(document).ready(function(){
 	}, 5000);
 	
 	socket.on('ping_changes_response', function (data) {
-		console.log(data);
 		if(last_update == 0){
+			console.log(data.lastId);
 			last_update = data.lastId;
 		}
 		else{
@@ -43,6 +86,7 @@ $(document).ready(function(){
 			}
 		}
 	});
+	
 });
 
 function getIconHTML(extension){

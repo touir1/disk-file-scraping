@@ -111,6 +111,7 @@ fs.readFile('./index.html', function (err, html) {
 	fs.readFile('data/server_data.json', 'utf8', function (err,data){
 		var dataParsed = {};
 		
+		/*
 		if(err) {
 			dataParsed.lastId = 1;
 			fs.writeFile('data/server_data.json', JSON.stringify(dataParsed), 'utf8', function(error){
@@ -120,14 +121,16 @@ fs.readFile('./index.html', function (err, html) {
 		}
 		
 		dataParsed = data;
-		dataParsed.lastId = dataParsed.lastId + 1;
-		fs.writeFile('data/server_data.json', JSON.stringify(dataParsed), 'utf8', function(error){
+		*/
+		dataParsed.lastId = new Date().toLocaleString();
+		fs.writeFile('data/server_data.json', dataParsed, 'utf8', function(error){
 			if(error) throw error;
-			console.log('the server_data.json file was updated');
+			console.log('the server_data.json file was updated. new id = ' + dataParsed.lastId);
 		});
 		
 		io.on('connection', function (socket) {
 			socket.on('ping_changes', function (data) {
+				//console.log(dataParsed);
 				socket.emit('ping_changes_response', dataParsed);
 			});
 		});
